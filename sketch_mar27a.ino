@@ -10,7 +10,7 @@ Objetivo 5: Exiba os dados lidos no console, utilizando a classe Serial.*/
 
 
 
-#include <Arduino.h>	// inclusao da biblioteca arduino.h
+#include <Arduino.h>  // inclusao da biblioteca arduino.h
 
 // Ln é o LED correspondente a saida binaria (amarelos e vermelhos)
 const int L0 = 5;
@@ -22,35 +22,36 @@ const int L5 = 10;
 const int L6 = 11;
 const int L7 = 12;
 // LMn é o LED correspondente a indicacao da maior leitura analogica (verde)
-const int LM0 = 0;
-const int LM1 = 1;
-const int LM2 = 2;
+const int LM0 = 2;
+const int LM1 = 3;
+const int LM2 = 4;
 // incluindo LEDs em vetor de escopo global p/ utilizacao em funcoes
 const int LEDS[] = {L0, L1, L2, L3, L4, L5, L6, L7};
 
-const int BT = 13;	// variavel representa botao
+const int BT = 13;  // variavel representa botao
+int ATIVO = 0;  //variável para definir a entrada analogica
 
 int PTC[] = {A0, A1, A2};  //vetor que declara as entradas analógicas
 
 void setup() 
 {
 // inicializando botao
-  pinMode(BT,INPUT_PULLUP);
+  pinMode(BT, INPUT);
   //inicializando as portas digitais dos LEDs dos bits:
- for(int k = 5; k <= 12; k++)	
+ for(int k = 5; k <= 12; k++) 
  {
-  pinMode(k,OUTPUT);
+  pinMode(k, OUTPUT);
   }
 
   //Inicializando os pinos dos LEDs que apresentam a maior leitura analogica
-  pinMode(LM0,OUTPUT);
-  pinMode(LM1,OUTPUT);
-  pinMode(LM2,OUTPUT);
+  pinMode(LM0, OUTPUT);
+  pinMode(LM1, OUTPUT);
+  pinMode(LM2, OUTPUT);
 
   //Inicializando os pinos que realizam cada leitura analogica
-  pinMode(A0,INPUT);
-  pinMode(A1,INPUT);
-  pinMode(A2,INPUT);
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
 
 // inicializa o monitor serial
   Serial.begin(9600);
@@ -63,14 +64,12 @@ void INDICA_MAIOR();
 void loop()
 {
   int LEITURA = 0;  //variável para leitura da entrada analogica
-  int ATIVO = 0;  //variável para definir a entrada analogica
   
-  if (ATIVO <= 2)	// a var ATIVO define a posicao dentro do ponteiro PTC[]
+  if (ATIVO <= 2) // a var ATIVO define a posicao dentro do ponteiro PTC[]
   {
-      if (digitalRead(BT) == 0)
+      if (digitalRead(BT) == HIGH)
       {
          ATIVO++;
-         delay(500);
       }
       //grava a leitura do pino analogico na var LEITURA. Adivisao por 4 ocorre para reduzir a resolucao de 10 bits para 8 bits
       LEITURA = analogRead(PTC[ATIVO]) / 4;     
@@ -80,20 +79,20 @@ void loop()
       INDICA_MAIOR();
       
       //comandos que imprimem os dados no console 
-      Serial.println("Resistor 0: ");
-      Serial.print(analogRead(A0));
+      Serial.print("Resistor 0: ");
+      Serial.print(analogRead(A0) / 4);
       Serial.print("  Resistor 1:");
-      Serial.print(analogRead(A1)); 
+      Serial.print(analogRead(A1) / 4); 
       Serial.print("  Resistor 2: ");
-      Serial.print(analogRead(A2)); 
-      Serial.println("Tensão em R0: ");
+      Serial.println(analogRead(A2) / 4); 
+      Serial.print("Tensão em R0: ");
       Serial.print((5 * analogRead(A0)) / 1024.0);
       Serial.print("  Tensão em R1: ");
       Serial.print((5 * analogRead(A1)) / 1024.0);
       Serial.print("  Tensão em R2: ");
-      Serial.print((5 * analogRead(A2)) / 1024.0);
-      Serial.println("Leitura ativa: R");
-      Serial.print(ATIVO);
+      Serial.println((5 * analogRead(A2)) / 1024.0);
+      Serial.print("Leitura ativa: R");
+      Serial.println(ATIVO);
       delay(2300);
   }
   else
@@ -117,7 +116,7 @@ void BITS_LEDS(int OPERANDO) //funcao responsavel por converter o valor lido na 
     }
 }
 
-void INDICA_MAIOR()	// funcao responsavel por acender o LED que indica a maior entrada analogica
+void INDICA_MAIOR() // funcao responsavel por acender o LED que indica a maior entrada analogica
 {
   int R0, R1, R2;
   R0 = analogRead(A0);
