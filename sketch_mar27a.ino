@@ -1,3 +1,18 @@
+/*Objetivo 1: Estude o datasheet do arduíno uno para determinar quais os valores são escritos nas portas Analógicas para cada um dos valores de tensão possíveis - de 0 a 5V.
+
+Objetivo 2: Implemente um circuito, com 3 divisores de tensão, conectados às portas A0, A1 e A2.
+
+Objetivo 3: Implemente um programa que faça a leitura das tensões em A0, A1 e A2 e exiba os valores em binários nos pinos digitais. Escolha a resolução desejada, fazendo uma regra de 3 para garantir que os valores máximos conforme os valores escritos nem A0, A1 e A2. Alterne os valores exibidos na saida com base no click de um push button. Demonstre o funcionamento do circuito real, através de um múltimitro contectado à porta e faça as conversões manualmente que o programa desenvolvido também o faz. Apresente esses resultados no relatório.
+
+Objetivo 4: Reserve um conjunto de bits de saída para demonstrar qual dos valores tem maior módulo. Exemplo: Se o valor de A0 for maior que A1 e A2, o pino de saida indicativo do A0 estará High e os demais Low, se A0 e A1 forem iguais e > que A2, os pinos de A0 e A1 estarão High e A2 Low.
+
+Objetivo 5: Exiba os dados lidos no console, utilizando a classe Serial.*/
+
+
+
+#include <Arduino.h>	// inclusao da biblioteca arduino.h
+
+// Ln é o LED correspondente a saida binaria (amarelos e vermelhos)
 const int L0 = 5;
 const int L1 = 6;
 const int L2 = 7;
@@ -6,61 +21,66 @@ const int L4 = 9;
 const int L5 = 10;
 const int L6 = 11;
 const int L7 = 12;
+// LMn é o LED correspondente a indicacao da maior leitura analogica (verde)
 const int LM0 = 0;
 const int LM1 = 1;
 const int LM2 = 2;
+// incluindo LEDs em vetor de escopo global p/ utilizacao em funcoes
 const int LEDS[] = {L0, L1, L2, L3, L4, L5, L6, L7};
 
-const int BT = 13;
-
-const int vals[] = {1, 2, 4, 8, 16, 32, 64, 128};
+const int BT = 13;	// variavel representa botao
 
 int PTC[] = {A0, A1, A2};  //vetor que declara as entradas analógicas
 
 void setup() 
 {
+// inicializando botao
   pinMode(BT,INPUT_PULLUP);
-  //Declarando as portas digitais dos leds dos bits:
- for(int k = 5; k <= 12; k++) 
+  //inicializando as portas digitais dos LEDs dos bits:
+ for(int k = 5; k <= 12; k++)	
  {
   pinMode(k,OUTPUT);
   }
 
-  //Declarando os pinos dos leds que representam cada resistor:
-  pinMode(LM0,OUTPUT); //amarelo = A0
-  pinMode(LM1,OUTPUT); //vermelho = A1
-  pinMode(LM2,OUTPUT); //verde = A2
+  //Inicializando os pinos dos LEDs que apresentam a maior leitura analogica
+  pinMode(LM0,OUTPUT);
+  pinMode(LM1,OUTPUT);
+  pinMode(LM2,OUTPUT);
 
-  //Declarando as portas analogicas dos resistores:
+  //Inicializando os pinos que realizam cada leitura analogica
   pinMode(A0,INPUT);
   pinMode(A1,INPUT);
   pinMode(A2,INPUT);
 
+// inicializa o monitor serial
   Serial.begin(9600);
 }
+
+//apresentando cabecalho das funcoes utilizadas no codigo
+void BITS_LEDS(int OPERANDO);
+void INDICA_MAIOR();
  
 void loop()
 {
-  int ATIVO = 0;  //variável para definir o potenciôemtro lido
-  int LEITURA = 0;  //variável para leitura do potenciôemtro
+  int LEITURA = 0;  //variável para leitura da entrada analogica
+  int ATIVO = 0;  //variável para definir a entrada analogica
   
-  if (ATIVO <= 2)
+  if (ATIVO <= 2)	// a var ATIVO define a posicao dentro do ponteiro PTC[]
   {
-      //armazena o valor do potenciômetro respectivo
       if (digitalRead(BT) == 0)
       {
          ATIVO++;
          delay(500);
       }
-      
+      //grava a leitura do pino analogico na var LEITURA. Adivisao por 4 ocorre para reduzir a resolucao de 10 bits para 8 bits
       LEITURA = analogRead(PTC[ATIVO]) / 4;     
       
-      //chamada da função ligarLeds, com entrada sendo o valor oitobits
-      ligarLeds_bits(LEITURA);
-      maiorvalor();
+      // chamada das funcoes que comandam os LEDs
+      BITS_LEDS(LEITURA);
+      INDICA_MAIOR();
       
-      //imprimir os dados 
-      Serial.print("Resistor 0: ");
+      //comandos que imprimem os dados no console 
+      Serial.println("Resistor 0: ");
       Serial.print(analogRead(A0));
       Serial.print("  Resistor 1:");
       Serial.print(analogRead(A1)); 
@@ -73,8 +93,8 @@ void loop()
       Serial.print("  Tensão em R2: ");
       Serial.print((5 * analogRead(A2)) / 1024.0);
       Serial.println("Leitura ativa: R");
-      Serial.println(ATIVO);
-      delay(3000);
+      Serial.print(ATIVO);
+      delay(2300);
   }
   else
   {
@@ -82,62 +102,68 @@ void loop()
   }
 }
 
-void maiorvalor()
-{
-  if(analogRead(A0)>analogRead(A1) and analogRead(A0)>analogRead(A2))
-  {
-    digitalWrite(10, HIGH);
-    digitalWrite(11, LOW);
-    digitalWrite(11, LOW);
-    }
-  else if(analogRead(A1)>analogRead(A0) and analogRead(A1)>analogRead(A2))
-  {
-    digitalWrite(10, LOW);
-    digitalWrite(11, HIGH);
-    digitalWrite(11, LOW);
-    }
-  else if(analogRead(A2)>analogRead(A1) and analogRead(A2)>analogRead(A0))
-  {
-    digitalWrite(10, LOW);
-    digitalWrite(11, LOW);
-    digitalWrite(11, HIGH);
-    }
-  else if(analogRead(A0)==analogRead(A1) and analogRead(A0)>analogRead(A2))
-  {
-    digitalWrite(10, HIGH);
-    digitalWrite(11, HIGH);
-    digitalWrite(11, LOW);
-    }
-   else if(analogRead(A0)==analogRead(A2) and analogRead(A2)>analogRead(A1))
-   {
-    digitalWrite(10, HIGH);
-    digitalWrite(11, LOW);
-    digitalWrite(11, HIGH);
-    }
-   else if(analogRead(A1)==analogRead(A2) and analogRead(A2)>analogRead(A0))
-   {
-    digitalWrite(10, LOW);
-    digitalWrite(11, HIGH);
-    digitalWrite(11, HIGH);
-    }
-   else
-   {
-    digitalWrite(10, HIGH);
-    digitalWrite(11, HIGH);
-    digitalWrite(11, HIGH);
-    }
-}
-
-void ligarLeds_bits(int valor)
+void BITS_LEDS(int OPERANDO) //funcao responsavel por converter o valor lido na porta analogica para base binaria enquanto comanda os LEDs
 {
     for(int k = 7; k >= 0; k--)
     {
-        if(valor >= vals[k])
+        int DIVISORES[] = {1, 2, 4, 8, 16, 32, 64, 128};
+        if(OPERANDO >= DIVISORES[k])
         {
-            valor -= vals[k];
+            OPERANDO -= DIVISORES[k];
             digitalWrite(LEDS[k], HIGH);
         }
         else
-          digitalWrite(LEDS[k], LOW);
+            digitalWrite(LEDS[k], LOW);
+    }
+}
+
+void INDICA_MAIOR()	// funcao responsavel por acender o LED que indica a maior entrada analogica
+{
+  int R0, R1, R2;
+  R0 = analogRead(A0);
+  R1 = analogRead(A1);
+  R2 = analogRead(A2);
+ 
+  if(R0 > R1 && R0 > R2)
+  {
+    digitalWrite(LM0, HIGH);
+    digitalWrite(LM1, LOW);
+    digitalWrite(LM2, LOW);
+    }
+  else if(R1 > R0 && R1 > R2)
+  {
+    digitalWrite(LM0, LOW);
+    digitalWrite(LM1, HIGH);
+    digitalWrite(LM2, LOW);
+    }
+  else if(R2 > R0 && R2 > R1)
+  {
+    digitalWrite(LM0, LOW);
+    digitalWrite(LM1, LOW);
+    digitalWrite(LM2, HIGH);
+    }
+  else if(R0 == R1 && R0 > R2)
+  {
+    digitalWrite(LM0, HIGH);
+    digitalWrite(LM1, HIGH);
+    digitalWrite(LM2, LOW);
+    }
+   else if(R0 == R2 && R2 > R1)
+   {
+    digitalWrite(LM0, HIGH);
+    digitalWrite(LM1, LOW);
+    digitalWrite(LM2, HIGH);
+    }
+   else if(R1 == R2 && R2 > R0)
+   {
+    digitalWrite(LM0, LOW);
+    digitalWrite(LM1, HIGH);
+    digitalWrite(LM2, HIGH);
+    }
+   else
+   {
+    digitalWrite(LM0, HIGH);
+    digitalWrite(LM1, HIGH);
+    digitalWrite(LM2, HIGH);
     }
 }
